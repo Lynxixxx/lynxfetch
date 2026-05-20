@@ -7,6 +7,7 @@ My first C++ CLI tool for fetching system info. It reads data straight from the 
 * **CPU**: Parses your exact CPU model right out of `/proc/cpuinfo`
 * **RAM**: Calculates used vs available memory from `/proc/meminfo` and converts it to GiB
 * **Swap**: Monitors your swap partition status (`SwapTotal` and `SwapFree`)
+* **Shell**: Detects your current active shell environment
 * **Design**: Clean ANSI color formatting for your terminal output
 * Nerd Fonts support/icons coming soon!
 
