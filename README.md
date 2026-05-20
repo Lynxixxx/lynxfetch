@@ -12,14 +12,6 @@ My first C++ CLI tool for fetching system info. It reads data straight from the 
 
 ## Build & Run
 
-To compile and run this on Arch Linux (or any other distro), you'll just need `g++`:
-
-```bash
-g++ main.cpp -o lynxfetch
-./lynxfetch
-
-## Build & Run
-
 To compile this, you'll just need g++:
 ```bash
 g++ main.cpp -o lynxfetch
