@@ -44,8 +44,6 @@ std::string get_mem() {
   std::string line;
   double total_kb = 0;
   double available_kb = 0;
-  double total_swap_kb = 0;
-  double swap_free_kb = 0;
 
   while (std::getline(file, line)) {
     if (line.find("MemTotal:") == 0) {
@@ -128,8 +126,34 @@ std::string get_kernel() {
   return "Kernel not found";
 }
 
+std::string get_uptime() {
+  std::ifstream file("/proc/uptime");
+  if (!file.is_open()) {
+    return "Unknown uptime";
+  }
+  double uptime_seconds = 0;
+  file >> uptime_seconds;
+  file.close();
+  if (uptime_seconds <= 0) return "Uptime Error";
+  int total_seconds = static_cast<int>(uptime_seconds);
+  int days = total_seconds / 86400;
+  int hours = (total_seconds % 86400) / 3600;
+  int minutes = (total_seconds % 3600) / 60;
+
+  std::stringstream result;
+  if (days > 0) {
+    result << days << " d " << hours << " h " << minutes << " m";
+  } else if (hours > 0) {
+    result << hours << " h " << minutes << " m"; 
+  } else {
+    result << minutes << " m";
+  }
+  return result.str();
+}
+
 int main() {
   std::cout << cyan << "Kernel: " << reset << get_kernel() << std::endl;
+  std::cout << cyan << "Uptime: " << reset << get_uptime() << std::endl;
   std::cout << cyan << "CPU: " << reset << get_cpu() << std::endl;
   std::cout << cyan << "Memory: " << reset << get_mem() << std::endl;
   std::cout << cyan << "Swap: " << reset << get_swap() << std::endl;
