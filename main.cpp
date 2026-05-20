@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdio>
 #include <iomanip>
 #include <ios>
@@ -151,9 +152,23 @@ std::string get_uptime() {
   return result.str();
 }
 
+std::string get_shell() {
+  const char* shell_env = std::getenv("SHELL");
+  if (shell_env == nullptr) {
+    return "Unknown Shell";
+  }
+  std::string full_path(shell_env);
+  size_t last_slash = full_path.find_last_of("/");
+  if (last_slash != std::string::npos) {
+    return full_path.substr(last_slash + 1);
+  }
+  return full_path;
+}
+
 int main() {
   std::cout << cyan << "Kernel: " << reset << get_kernel() << std::endl;
   std::cout << cyan << "Uptime: " << reset << get_uptime() << std::endl;
+  std::cout << cyan << "Shell: " << reset << get_shell() << std::endl;
   std::cout << cyan << "CPU: " << reset << get_cpu() << std::endl;
   std::cout << cyan << "Memory: " << reset << get_mem() << std::endl;
   std::cout << cyan << "Swap: " << reset << get_swap() << std::endl;
