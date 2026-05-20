@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <iomanip>
 #include <ios>
 #include <iostream>
@@ -43,6 +44,8 @@ std::string get_mem() {
   std::string line;
   double total_kb = 0;
   double available_kb = 0;
+  double total_swap_kb = 0;
+  double swap_free_kb = 0;
 
   while (std::getline(file, line)) {
     if (line.find("MemTotal:") == 0) {
@@ -53,6 +56,7 @@ std::string get_mem() {
       std::stringstream kb(line.substr(13));
       kb >> available_kb;
     }
+
     if (total_kb > 0 && available_kb > 0) {
       break;
     }
@@ -65,14 +69,69 @@ std::string get_mem() {
   double used_gb = used_kb / (1024.0 * 1024.0);
 
   std::stringstream result;
-  result << std::fixed << std::setprecision(2) << used_gb << " GiB / " << total_gb << " Gib" << std::endl;
+  result << std::fixed << std::setprecision(2) << used_gb << " GiB / " << total_gb << " GiB";
   return result.str();
 }
 
+std::string get_swap() {
+   std::ifstream file("/proc/meminfo");
+  if (!file.is_open()) {
+    return "Unknown swap";
+  }
+  std::string line;
+  double total_swap_kb = 0;
+  double swap_free_kb = 0;
 
+  while (std::getline(file, line)) {
+    if(line.find("SwapTotal:") == 0) {
+      std::stringstream kb(line.substr(10));
+      kb >> total_swap_kb;
+    }
+    else if(line.find("SwapFree:") == 0) {
+      std::stringstream kb(line.substr(9));
+      kb >> swap_free_kb;
+    }
+
+    if (total_swap_kb > 0 && swap_free_kb > 0) {
+      break;
+    }
+  }
+  file.close();
+  if (total_swap_kb == 0) return "Swap Error";
+  double used_swap_kb = total_swap_kb - swap_free_kb;
+
+  double total_swap_gb = total_swap_kb / (1024.0 * 1024.0);
+  double swap_used_gb = used_swap_kb / (1024.0 * 1024.0);
+
+  std::stringstream result;
+  result << std::fixed << std::setprecision(2) << swap_used_gb << " GiB / " << total_swap_gb << " GiB";
+  return result.str();
+}
+
+std::string get_kernel() {
+  std::ifstream file("/proc/version");
+  if (!file.is_open()) {
+    return "Unknown kernel";
+  }
+  std::string line;
+  std::getline(file, line);
+  size_t pos = line.find("version ");
+  if (pos != std::string::npos) {
+    std::string end = line.substr(pos + 8);
+    std::stringstream lx(end);
+    std::string kernel_version;
+    lx >> kernel_version;
+    file.close();
+    return kernel_version;
+  }
+  file.close();
+  return "Kernel not found";
+}
 
 int main() {
+  std::cout << cyan << "Kernel: " << reset << get_kernel() << std::endl;
   std::cout << cyan << "CPU: " << reset << get_cpu() << std::endl;
   std::cout << cyan << "Memory: " << reset << get_mem() << std::endl;
+  std::cout << cyan << "Swap: " << reset << get_swap() << std::endl;
   return 0;
 }
