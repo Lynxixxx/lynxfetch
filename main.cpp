@@ -1,11 +1,12 @@
 #include <cstddef>
 #include <cstdio>
 #include <iomanip>
-#include <ios>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
+#include <algorithm>
 
 const std::string reset = "\033[0m";
 const std::string cyan = "\033[36m";
@@ -166,11 +167,43 @@ std::string get_shell() {
 }
 
 int main() {
-  std::cout << cyan << "Kernel: " << reset << get_kernel() << std::endl;
-  std::cout << cyan << "Uptime: " << reset << get_uptime() << std::endl;
-  std::cout << cyan << "Shell: " << reset << get_shell() << std::endl;
-  std::cout << cyan << "CPU: " << reset << get_cpu() << std::endl;
-  std::cout << cyan << "Memory: " << reset << get_mem() << std::endl;
-  std::cout << cyan << "Swap: " << reset << get_swap() << std::endl;
+
+  std::vector<std::string> art = {
+    R"(    /@\   /@\  /@\   /%\       /%\   )",       
+    R"(    /#\    \%\ /%/     /%\   /%\     )",
+    R"(    /#\     |&&|          /%\        )",
+    R"(    /#\     /#/        /%\   /%\     )",
+    R"(/&@@@$\    /#/       /%\       /%\   )",
+  };
+
+  std::vector<std::string> sys_info = {
+    cyan + "Kernel: " + reset + get_kernel(),
+    cyan + "Uptime: " + reset + get_uptime(),
+    cyan + "Shell: " + reset + get_shell(),
+    cyan + "CPU: " + reset + get_cpu(),
+    cyan + "Memory: " + reset + get_mem(),
+    cyan + "Swap: " + reset + get_swap(),
+  };
+
+  size_t  max_art_width = 0;
+  for (const auto& line : art) {
+    max_art_width = std::max(max_art_width, line.length());
+  }
+  size_t padding = 3;
+  size_t max_lines = std::max(art.size(), sys_info.size());
+  for (size_t i = 0; i < max_lines; i++) {
+    std::string art_line = "";
+    if (i < art.size()) {
+      art_line = art[i];
+    }
+    std::cout << cyan << art_line;
+    size_t current_width = (i < art.size()) ? art[i].length() : 0;
+    std::cout << std::string(max_art_width - current_width + padding, ' ');
+
+    if (i < sys_info.size()) {
+      std::cout << sys_info[i];
+    }
+    std::cout << reset << "\n";
+  }
   return 0;
 }
