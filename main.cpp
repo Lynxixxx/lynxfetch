@@ -6,7 +6,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 const std::string reset = "\033[0m";
 const std::string cyan = "\033[36m";
@@ -38,73 +37,43 @@ std::string get_cpu() {
 }
 
 
-std::string get_mem() {
+std::string get_mem_info(bool is_swap) {
   std::ifstream file("/proc/meminfo");
   if (!file.is_open()) {
-    return "Unknown memory";
+    return is_swap ? "Unknown swap" : "Unknown memory";
   }
   std::string line;
   double total_kb = 0;
-  double available_kb = 0;
+  double free_or_avail_kb = 0;
+
+  std::string total_label = is_swap ? "SwapTotal:" : "MemTotal:";
+  std::string free_label = is_swap ? "SwapFree:" : "MemAvailable:";
+  size_t total_len = total_label.length();
+  size_t free_len = free_label.length();
 
   while (std::getline(file, line)) {
-    if (line.find("MemTotal:") == 0) {
-      std::stringstream kb(line.substr(9));
+    if (line.find(total_label) == 0) {
+      std::stringstream kb(line.substr(total_len));
       kb >> total_kb;
     }
-    else if (line.find("MemAvailable:") == 0) {
-      std::stringstream kb(line.substr(13));
-      kb >> available_kb;
+    else if (line.find(free_label) == 0) {
+      std::stringstream kb(line.substr(free_len));
+      kb >> free_or_avail_kb;
     }
 
-    if (total_kb > 0 && available_kb > 0) {
+    if (total_kb > 0 && free_or_avail_kb > 0) {
       break;
     }
   }
   file.close();
-  if (total_kb == 0) return "Memory Error";
-  double used_kb = total_kb - available_kb;
+  if (total_kb == 0) return is_swap ? "Swap Error" : "Memory Error";
+  double used_kb = total_kb - free_or_avail_kb;
 
   double total_gb = total_kb / (1024.0 * 1024.0);
   double used_gb = used_kb / (1024.0 * 1024.0);
 
   std::stringstream result;
   result << std::fixed << std::setprecision(2) << used_gb << " GiB / " << total_gb << " GiB";
-  return result.str();
-}
-
-std::string get_swap() {
-   std::ifstream file("/proc/meminfo");
-  if (!file.is_open()) {
-    return "Unknown swap";
-  }
-  std::string line;
-  double total_swap_kb = 0;
-  double swap_free_kb = 0;
-
-  while (std::getline(file, line)) {
-    if(line.find("SwapTotal:") == 0) {
-      std::stringstream kb(line.substr(10));
-      kb >> total_swap_kb;
-    }
-    else if(line.find("SwapFree:") == 0) {
-      std::stringstream kb(line.substr(9));
-      kb >> swap_free_kb;
-    }
-
-    if (total_swap_kb > 0 && swap_free_kb > 0) {
-      break;
-    }
-  }
-  file.close();
-  if (total_swap_kb == 0) return "Swap Error";
-  double used_swap_kb = total_swap_kb - swap_free_kb;
-
-  double total_swap_gb = total_swap_kb / (1024.0 * 1024.0);
-  double swap_used_gb = used_swap_kb / (1024.0 * 1024.0);
-
-  std::stringstream result;
-  result << std::fixed << std::setprecision(2) << swap_used_gb << " GiB / " << total_swap_gb << " GiB";
   return result.str();
 }
 
@@ -169,11 +138,14 @@ std::string get_shell() {
 int main() {
 
   std::vector<std::string> art = {
-    R"(    /@\   /@\  /@\   /%\       /%\   )",       
-    R"(    /#\    \%\ /%/     /%\   /%\     )",
-    R"(    /#\     |&&|          /%\        )",
-    R"(    /#\     /#/        /%\   /%\     )",
-    R"(/&@@@$\    /#/       /%\       /%\   )",
+    R"(         _           )",
+    R"(       `/s\`         )",
+    R"(      `/s+s\`        )",
+    R"(     :/\++++\:       )",       
+    R"(    :/osfffso\:      )",
+    R"(   :/ss/   \ss\:     )",
+    R"(  `/oss/\_/\so\\`    )",
+    R"( `/___/     \___\`   )",
   };
 
   std::vector<std::string> sys_info = {
@@ -181,8 +153,8 @@ int main() {
     cyan + "Uptime: " + reset + get_uptime(),
     cyan + "Shell: " + reset + get_shell(),
     cyan + "CPU: " + reset + get_cpu(),
-    cyan + "Memory: " + reset + get_mem(),
-    cyan + "Swap: " + reset + get_swap(),
+    cyan + "Memory: " + reset + get_mem_info(false),
+    cyan + "Swap: " + reset + get_mem_info(true),
   };
 
   size_t  max_art_width = 0;
